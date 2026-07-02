@@ -17,9 +17,9 @@ except ImportError:
 class PDFParser(BaseParser):
     def parse(self, file_path: str) -> FinancialDocument:
         metadata = self.extract_metadata(file_path)
-        # TODO: These will be used when implementing section extraction and table parsing.
-        # text = self.extract_text(file_path)
-        # tables = self.extract_tables(file_path)
+        # Store for the next pipeline stage (Cleaning -> Section Detection)
+        text = self.extract_text(file_path)
+        tables = self.extract_tables(file_path)
         
         # Create a valid FinancialDocument
         doc_metadata = DocumentMetadata(
@@ -55,8 +55,28 @@ class PDFParser(BaseParser):
         else:
             metadata["pages"] = 0
                 
-        # TODO: Extract company name from the document metadata/content.
+        # Extract company name generically from the first page using common SEC 10-K markers
         metadata["company_name"] = "Unknown"
+        if pypdf:
+            try:
+                with open(file_path, "rb") as f:
+                    reader = pypdf.PdfReader(f)
+                    if len(reader.pages) > 0:
+                        first_page = reader.pages[0].extract_text()
+                        lines = [line.strip() for line in first_page.split('\n') if line.strip()]
+                        for i, line in enumerate(lines):
+                            line_lower = line.lower()
+                            if ("(exact name of registrant" in line_lower or 
+                                "(state of incorporation" in line_lower or 
+                                "(state or other jurisdiction" in line_lower):
+                                if i > 0:
+                                    name = lines[i-1]
+                                    if name.upper() in ["OR", "AND"] and i > 1:
+                                        name = lines[i-2]
+                                    metadata["company_name"] = name
+                                break
+            except Exception:
+                pass
                 
         # Generate hash
         with open(file_path, "rb") as f:
