@@ -21,6 +21,16 @@ class SectionType(str, Enum):
     FINANCIAL_STATEMENTS = "FINANCIAL_STATEMENTS"
     CYBERSECURITY = "CYBERSECURITY"
     NOTES = "NOTES"
+    PRODUCTS = "PRODUCTS"
+    SERVICES = "SERVICES"
+    COMPETITION = "COMPETITION"
+    HUMAN_CAPITAL = "HUMAN_CAPITAL"
+    ESG = "ESG"
+    GOVERNANCE = "GOVERNANCE"
+    LEGAL_PROCEEDINGS = "LEGAL_PROCEEDINGS"
+    PROPERTIES = "PROPERTIES"
+    EXECUTIVE_OFFICERS = "EXECUTIVE_OFFICERS"
+    MARKET_INFORMATION = "MARKET_INFORMATION"
     OTHER = "OTHER"
 
 class DocumentType(str, Enum):
@@ -39,10 +49,10 @@ class FileFormat(str, Enum):
 
 class DocumentMetadata(BaseModel):
     company_name: str
-    ticker: Optional[str]
-    company_cik: Optional[str]
-    fiscal_year: Optional[int]
-    filing_date: Optional[date]
+    ticker: Optional[str] = None
+    company_cik: Optional[str] = None
+    fiscal_year: Optional[int] = None
+    filing_date: Optional[date] = None
     document_type: DocumentType
     pages: int
     language: str = "en"
@@ -54,6 +64,9 @@ class DocumentMetadata(BaseModel):
 
 class DocumentSection(BaseModel):
     section_id: str
+    parent_section_id: Optional[str] = None
+    level: int = Field(default=1, ge=1)
+    item_number: Optional[str] = None
     section_type: SectionType
     title: str
     content: str
@@ -62,7 +75,7 @@ class DocumentSection(BaseModel):
 
 class DocumentTable(BaseModel):
     table_id: str
-    title: Optional[str]
+    title: Optional[str] = None
     columns: List[str]
     rows: List[List[Any]]
     page_start: int
@@ -70,19 +83,20 @@ class DocumentTable(BaseModel):
 
 class DocumentFigure(BaseModel):
     figure_id: str
-    title: Optional[str]
-    description: Optional[str]
+    title: Optional[str] = None
+    description: Optional[str] = None
     page_number: int
-    image_path: Optional[str]
+    image_path: Optional[str] = None
 
 class DocumentChunk(BaseModel):
     chunk_id: str
     chunk_index: int
     text: str
     token_count: int
-    section_id: Optional[str]
-    section_title: Optional[str]
-    page_number: int
+    section_id: Optional[str] = None
+    section_title: Optional[str] = None
+    page_start: int
+    page_end: int
 
 class ValidationError(BaseModel):
     error_id: str
@@ -96,5 +110,5 @@ class FinancialDocument(BaseModel):
     sections: List[DocumentSection] = Field(default_factory=list)
     tables: List[DocumentTable] = Field(default_factory=list)
     figures: List[DocumentFigure] = Field(default_factory=list)
-    chunks: Optional[List[DocumentChunk]] = Field(default_factory=list)
-    validation_errors: Optional[List[ValidationError]] = Field(default_factory=list)
+    chunks: List[DocumentChunk] = Field(default_factory=list)
+    validation_errors: List[ValidationError] = Field(default_factory=list)
