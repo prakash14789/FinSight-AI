@@ -72,11 +72,12 @@ class DocumentCleaner:
         """
         Removes generic repeated page headers and footers typical in SEC filings.
         For example, lines matching 'PART IItem 1' or 'PART I Item 1A' or 'PART IItem 1B, 1C'.
+        Uses [ \\t]* instead of \\s* to prevent matching across newlines.
         """
         if not text:
             return ""
-        # Match lines starting with PART, followed by Roman numerals, followed by optional spaces, then Item and anything else
-        return re.sub(r'(?mi)^\s*PART\s+([IVXLC]+?)\s*(Item\s+.*)$\n?', '', text)
+        # Match lines starting with PART, followed by Roman numerals, followed by optional horizontal spaces, then Item and anything else
+        return re.sub(r'(?mi)^[ \t]*PART[ \t]+([IVXLC]+?)[ \t]*(Item[ \t]+.*)$\n?', '', text)
 
     def join_split_item_headers(self, text: str) -> str:
         """
@@ -90,7 +91,7 @@ class DocumentCleaner:
         if not text:
             return ""
         # Join lines starting with 'Item' followed by number and period, then newline, then a capital letter heading line
-        return re.sub(r'(?m)^\s*([Ii][Tt][Ee][Mm]\s+\d+[A-Z]?\.?)\s*\n\s*([A-Z].*)$', r'\1 \2', text)
+        return re.sub(r'(?m)^[ \t]*([Ii][Tt][Ee][Mm][ \t]+\d+[A-Z]?\.?)[ \t]*\n[ \t]*([A-Z].*)$', r'\1 \2', text)
 
     def clean_text(self, text: str) -> str:
         """
