@@ -7,10 +7,12 @@ class DocumentCleaner:
 
     def normalize_newlines(self, text: str) -> str:
         """
-        Standardizes newline characters to \\n and strips trailing whitespace from each line.
+        Standardizes newline characters to \n and strips trailing whitespace from each line.
         """
         if not text:
             return ""
+        # Replace non-breaking spaces with normal spaces
+        text = text.replace('\xa0', ' ')
         # Convert carriage returns
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         # Strip trailing whitespace from each line
